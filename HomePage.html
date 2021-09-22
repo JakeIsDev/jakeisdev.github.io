@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<script type="text/javascript">
+//TODO: prompt user if more than one possible carrier is found.
+
+var trackingNumber = '';
+var carrier = '';
+var size;
+
+var fedexLink = 'https://www.fedex.com/fedextrack/?trknbr=';
+var UPSLink = 'https://www.ups.com/track?loc=en_US&tracknum=';
+var USPSLink = 'https://tools.usps.com/go/TrackConfirmAction?tRef=fullpage&tLc=2&text28777=&tLabels=';
+var DHLLink = 'https://www.dhl.com/us-en/home/tracking.html?tracking-id='
+var PurolatorLink = 'https://www.purolator.com/en/shipping/tracker?pins='
+
+
+var x = location.href;
+if(x.includes('#track='))
+{
+x = x.split('#track=')[1];
+if(x.length > 3)
+	DetermineCarrier(x);
+}
+	
+
+function DetermineCarrier(number) {
+    trackingNumber = number;
+	
+	size = trackingNumber.length;
+	if (size == 22 || trackingNumber.startsWith('EC') || trackingNumber.startsWith('CP'))
+		carrier = 'USPS';
+	else if (isPurolator(number))
+		carrier = 'Purolator';
+	else if(isDHL(trackingNumber))
+		carrier = 'DHL';
+	else if(size == 12 || size  == 14) //fedex
+		carrier = 'fedex';
+	else if (trackingNumber.startsWith('1Z') || size == 18) //ups
+		carrier = 'UPS';
+	else
+		window.alert("Tracking Number was not matched to a Supported Carrier.");
+
+	
+	GoToCarrier();
+}
+
+function GoToCarrier()
+{
+	if(carrier == 'fedex')
+		location.replace(fedexLink + trackingNumber);
+	else if(carrier == 'UPS')
+		location.replace(UPSLink + trackingNumber);
+	else if(carrier == 'USPS')
+		location.replace(USPSLink + trackingNumber);
+	else if(carrier == 'DHL')
+		location.replace(DHLLink + trackingNumber);
+	else if(carrier == 'Purolator')
+		location.replace(PurolatorLink + trackingNumber);
+		
+}
+
+function isDHL(number)
+{
+	if(withoutAlphabeticCharatcers(number).length == 10) //DHL Express
+		return true;
+	else if ((withoutDigits(number).length <= 5 && withoutDigits(number).length >= 1) && size > 9 && size < 40) //DHL eCommerce
+		return true;
+	else if(number.startsWith('3S') || number.startsWith('JVGL') || number.startsWith('JJD'))//DHL Parcel
+		return true;
+	else if(isDHLGlobal(number)) //DHL Global Forwarding
+		return true;
+	else if(size == 9 || size == 10 || size == 14) //POSSIBLE CONFLICT WITH SIZE 14 FEDEX. DHL Freight
+		return true;
+	else return false;
+
+}
+
+function isPurolator(number)
+{
+	if(size == 10 || size == 12)
+		return true;
+	else if(withoutDigits(number.substring(0,2)).length == 3 && withoutAlphabeticCharatcers(number.substring(2,9)).length == 9)
+		return true;
+	else return false;
+}
+
+function isDHLGlobal(number)
+{
+	var global2Ending = number.substring(3);
+	
+	if(isNumericalOnly(number) && size == 7)
+		return true;
+	else if(withoutAlphabeticCharatcers(number.substring(0,1)).length == 1 && withoutDigits(number.substring(1,3)).length == 2 && isNumericalOnly(global2Ending) && global2Ending.length > 4 && global2Ending < 7)
+		return true;
+	else if (isAlphabeticalOnly(number.substring(0,2)) || isAlphabeticalOnly(number.substring(0,3)))
+		return true;
+	else if (number.includes('-'))
+		return true;
+	else return false;
+		
+}
+
+function withoutAlphabeticCharatcers(number)
+{
+	return number.replace(/\D/g,'');
+}
+
+function withoutDigits(number)
+{
+	return number.replace(/[0-9]/g, '');
+}
+
+function isNumericalOnly(number)
+{
+	if(withoutAlphabeticCharatcers(number).length == size)
+		return true;
+	else 
+		return false;
+}
+
+function isAlphabeticalOnly(number)
+{
+	if(withoutDigits(number).length == size)
+		return true;
+	else 
+		return false;
+}
+
+
+window.onload="DetermineCarrier(number)";
+window.onload="GoToCarrier()";
+window.onload="isAlphabeticalOnly()";
+window.onload="isNumericalOnly()";
+window.onload="withoutDigits()";
+window.onload="withoutAlphabeticCharatcers()";
+window.onload="isDHLGlobal()";
+window.onload="isDHL()";
+
+
+
+
+</script>
+
+</head>
+<body>
+<h1> Jacob's Super Cool Tracking Number Router </h1>
+<input type="text" id="TrackingNumber" />
+<input type="button" id="btn" value="Submit" onClick="javascript: DetermineCarrier(document.getElementById('TrackingNumber').value);" />
+
+<p>Supported Carriers: FedEx, UPS, USPS, Purolator, and DHL</p>
+<p> Possible issues: If multiple valid carriers are found, the first will be selected. Select screen coming soon.
+<br>
+<h2>Resources</h2>
+<a href="https://www.dhl.com/us-en/home/tracking/id-labels.html">DHL Tracking Number Formats</a>
+<br>
+<a href="https://andrewkurochkin.com/blog/code-for-recognizing-delivery-company-by-track">UPS, FedEx, and USPS Tracking Number Formats</a>
+<br>
+<a href="https://www.trackingmore.com/tracking-status-detail-en-254.html">Purolator Tracking Number Formats</a>
+
+
+</body>
+</html>
+
+
