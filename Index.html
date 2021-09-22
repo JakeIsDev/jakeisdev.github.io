@@ -32,14 +32,14 @@ function DetermineCarrier(number) {
     trackingNumber = number;
 	
 	size = trackingNumber.length;
-	if (size == 22 || trackingNumber.startsWith('EC') || trackingNumber.startsWith('CP'))
+	if(size == 12 || size  == 14) //fedex
+		carrier = 'fedex';
+	else if (size == 22 || trackingNumber.startsWith('EC') || trackingNumber.startsWith('CP'))
 		carrier = 'USPS';
 	else if (isPurolator(number))
 		carrier = 'Purolator';
 	else if(isDHL(trackingNumber))
 		carrier = 'DHL';
-	else if(size == 12 || size  == 14) //fedex
-		carrier = 'fedex';
 	else if (trackingNumber.startsWith('1Z') || size == 18) //ups
 		carrier = 'UPS';
 	else
